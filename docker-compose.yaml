@@ -19,6 +19,9 @@ services:
       - CLICKHOUSE_HOST=clickhouse
       - REDIS_URL=redis://redis-stack-server:6379
       - KMS_LOCAL_ENDPOINT=http://local-kms:9981
+      - DATABASE_URL="postgres://postgres:pezzo@postgres:5432/postgres"
+      - OPENAI_API_KEY="ollama"
+      - OPENAI_BASE_URL="http://host.docker.internal:11434/v1"
     ports:
       - "3000:3000"
     depends_on:
@@ -39,6 +42,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   pezzo-console:
     image: ghcr.io/pezzolabs/pezzo/console:latest
@@ -54,6 +59,8 @@ services:
     depends_on:
       pezzo-server:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   pezzo-proxy:
     image: ghcr.io/pezzolabs/pezzo/proxy:latest
@@ -64,8 +71,13 @@ services:
     env_file:
       - ./.env
       - ./apps/proxy/.env
+    environment:
+      - OPENAI_API_KEY="ollama"
+      - OPENAI_BASE_URL="http://host.docker.internal:11434/v1"
     ports:
       - "3001:3000"
     depends_on:
       pezzo-server:
         condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
